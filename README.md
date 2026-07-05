@@ -210,15 +210,10 @@ Verify the deterministic helper from the scripts directory:
 cd ~/.claude/skills/council/scripts && pytest
 ```
 
-## Credits & homage
+## Credits
 
-This Council is my own spin on ideas from people whose work I genuinely admire.
-The blind-panel and LLM-as-judge lineage -- independent seats, anonymized review,
-synthesis by evidence over eloquence -- comes from a body of multi-agent
-evaluation work, and **Matt Pocock** ([@mattpocock](https://github.com/mattpocock))
-shaped a lot of my thinking on AI engineering and how agents hand work to one
-another. I used their work, loved it, and tweaked it to fit my own use case. If
-any of it is useful to you too, that's the whole point. Take it, make it yours. :]
+Built on the blind-panel / LLM-as-judge lineage, with a nod to **Matt Pocock**
+([@mattpocock](https://github.com/mattpocock)). Tweaked for my own use -- take it
+and make it yours if it helps. :]
 
-Pairs with **[Bob](https://github.com/Zuxas/bob)**, the foreman who consults this
-board at his gates.
+Pairs with **[Bob](https://github.com/Zuxas/bob)**.
