@@ -34,9 +34,27 @@ PANELS = {
 }
 
 
+VALID_WEIGHTS = tuple(PANELS)   # ordered smallest -> largest blast radius
+
+
+def normalize_weight(weight):
+    """Return the canonical weight name, or raise ValueError.
+
+    Case and surrounding whitespace are forgiven ('  Heavy ' -> 'heavy'); anything else
+    is rejected. There is deliberately NO fallback: panel size scales with blast radius,
+    so silently mapping a typo ('irreversable') to a smaller panel fails in the dangerous
+    direction.
+    """
+    key = str(weight).strip().lower() if weight is not None else ""
+    if key not in PANELS:
+        raise ValueError(f"unknown decision weight {weight!r}; "
+                         f"valid weights: {', '.join(VALID_WEIGHTS)}")
+    return key
+
+
 def select_panel(weight):
-    """Return the seat list for a decision weight. Unknown weight -> 'standard'."""
-    return list(PANELS.get(str(weight).lower(), PANELS["standard"]))
+    """Return the seat list for a decision weight. Unknown weight -> ValueError."""
+    return list(PANELS[normalize_weight(weight)])
 
 
 def anonymize(outputs, seed=None):
@@ -82,14 +100,17 @@ def _main():
     sub = p.add_subparsers(dest="cmd", required=True)
 
     sp = sub.add_parser("select-panel")
-    sp.add_argument("--weight", required=True,
-                    help="routine | standard | heavy | irreversible")
+    sp.add_argument("--weight", required=True, help=" | ".join(VALID_WEIGHTS))
 
     vs = sub.add_parser("verdict-scaffold")
     vs.add_argument("--question", required=True)
-    vs.add_argument("--weight", required=True)
+    vs.add_argument("--weight", required=True, help=" | ".join(VALID_WEIGHTS))
 
     a = p.parse_args()
+    try:
+        a.weight = normalize_weight(a.weight)
+    except ValueError as e:
+        p.error(str(e))            # usage + message on stderr, exit status 2
     if a.cmd == "select-panel":
         print(json.dumps(select_panel(a.weight)))
     elif a.cmd == "verdict-scaffold":

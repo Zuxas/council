@@ -6,8 +6,49 @@ def test_select_panel_scales_with_weight():
     assert len(council.select_panel("irreversible")) == 8
     assert "CROSS_VENDOR" in council.select_panel("irreversible")
     assert "CROSS_VENDOR" not in council.select_panel("routine")
-    # unknown weight falls back to 'standard'
-    assert council.select_panel("whatever") == council.select_panel("standard")
+
+
+# --- #2: an invalid weight is an error, never a smaller panel -----------------
+
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+
+_CLI = Path(__file__).resolve().parent / "council.py"
+
+
+@pytest.mark.parametrize("bad", ["whatever", "irreversable", "heavvy", "", "  ", None, 3,
+                                 "standard panel", "routine,heavy"])
+def test_unknown_weight_is_rejected(bad):
+    with pytest.raises(ValueError) as e:
+        council.select_panel(bad)
+    for w in council.VALID_WEIGHTS:          # the error teaches the valid values
+        assert w in str(e.value)
+
+
+@pytest.mark.parametrize("raw,canon", [("Heavy", "heavy"), ("  irreversible\n", "irreversible"),
+                                       ("ROUTINE", "routine"), ("standard", "standard")])
+def test_case_and_whitespace_are_forgiven(raw, canon):
+    assert council.select_panel(raw) == council.PANELS[canon]
+
+
+@pytest.mark.parametrize("cmd", [["select-panel"], ["verdict-scaffold", "--question", "q"]])
+def test_cli_exits_nonzero_and_lists_valid_weights(cmd):
+    r = subprocess.run([sys.executable, str(_CLI), *cmd, "--weight", "irreversable"],
+                       capture_output=True, text=True)
+    assert r.returncode == 2
+    assert r.stdout == ""                                   # no panel printed
+    assert "irreversable" in r.stderr
+    assert all(w in r.stderr for w in council.VALID_WEIGHTS)
+
+
+def test_cli_accepts_a_valid_weight():
+    r = subprocess.run([sys.executable, str(_CLI), "select-panel", "--weight", " Irreversible "],
+                       capture_output=True, text=True, check=True)
+    assert len(json.loads(r.stdout)) == 8
 
 
 def test_advocate_and_redteam_are_always_paired():
