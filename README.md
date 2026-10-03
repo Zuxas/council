@@ -167,6 +167,9 @@ python scripts/council.py select-panel --weight heavy
 python scripts/council.py verdict-scaffold --question "<your question>" --weight heavy
 ```
 
+An unrecognized weight is an error (exit code 2, with the valid list) &mdash; never a
+quiet fallback to a smaller panel. Case and surrounding spaces don't matter.
+
 (`council.py` only handles the mechanics that must stay exact &mdash; who sits, the
 blind shuffle for the rebuttal round, and the verdict template. The judgment is the
 board's.)
